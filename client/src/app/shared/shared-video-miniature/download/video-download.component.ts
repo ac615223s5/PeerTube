@@ -101,7 +101,7 @@ export class VideoDownloadComponent {
     if (!this.video.isLocal || !this.authService.isLoggedIn()) return of(undefined)
 
     const user = this.authService.getUser()
-    if (!this.video.isOwnerOrHasSeeAllVideosRight(user)) return of(undefined)
+    //if (!this.video.isOwnerOrHasSeeAllVideosRight(user)) return of(undefined)
 
     return this.videoService.getSource(this.video.id)
       .pipe(catchError(err => {

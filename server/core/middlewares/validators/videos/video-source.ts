@@ -92,7 +92,7 @@ export const originalVideoFileDownloadValidator = [
       })
     }
 
-    if (!await checkCanAccessVideoSourceFile({ req, res, videoId: videoSource.videoId })) return
+    //if (!await checkCanAccessVideoSourceFile({ req, res, videoId: videoSource.videoId })) return
 
     res.locals.videoSource = videoSource
 

@@ -9,7 +9,7 @@ import express from 'express'
 import { param } from 'express-validator'
 import {
   areValidationErrors,
-  checkCanAccessVideoSourceFile,
+  //checkCanAccessVideoSourceFile,
   checkUserCanManageVideo,
   doesVideoExist,
   isValidVideoIdParam

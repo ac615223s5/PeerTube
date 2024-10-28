@@ -98,9 +98,9 @@ export class VideoDownloadComponent {
   }
 
   private getOriginalVideoFileObs () {
-    if (!this.video.isLocal || !this.authService.isLoggedIn()) return of(undefined)
+    if (!this.video.isLocal) return of(undefined)
 
-    const user = this.authService.getUser()
+    // const user = this.authService.getUser()
     //if (!this.video.isOwnerOrHasSeeAllVideosRight(user)) return of(undefined)
 
     return this.videoService.getSource(this.video.id)

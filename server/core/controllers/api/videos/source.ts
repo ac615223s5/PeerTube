@@ -31,7 +31,7 @@ const videoSourceRouter = express.Router()
 
 videoSourceRouter.get('/:id/source',
   openapiOperationDoc({ operationId: 'getVideoSource' }),
-  authenticate,
+  // authenticate,
   asyncMiddleware(videoSourceGetLatestValidator),
   getVideoLatestSource
 )

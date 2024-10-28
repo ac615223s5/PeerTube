@@ -80,7 +80,7 @@ export class VideoDownloadComponent {
           this.originalVideoFile = source
         }
 
-        if (this.originalVideoFile || videoRequiresFileToken(this.video)) {
+        if (videoRequiresFileToken(this.video)) {
           this.videoFileTokenService.getVideoFileToken({ videoUUID: this.video.uuid, videoPassword: this.videoPassword })
             .subscribe(({ token }) => {
               this.videoFileToken = token

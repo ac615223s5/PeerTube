@@ -16,14 +16,12 @@ import { AppComponent } from './app/app.component'
 import routes from './app/app.routes'
 import {
   CustomReuseStrategy,
-  MenuGuards,
   PluginService,
   PreloadSelectedModulesList,
   RedirectService,
   ServerService,
   getCoreProviders
 } from './app/core'
-import { polyfillICU } from './app/helpers'
 import { getMainProviders } from './app/shared/shared-main/main-providers'
 import { environment } from './environments/environment'
 import { logger } from './root-helpers'
@@ -74,7 +72,6 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
     getFormProviders(),
 
     PreloadSelectedModulesList,
-    ...MenuGuards.guards,
     { provide: RouteReuseStrategy, useClass: CustomReuseStrategy },
 
     provideRouter(routes,
@@ -94,11 +91,6 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
       provide: APP_INITIALIZER,
       useFactory: loadConfigFactory,
       deps: [ ServerService, PluginService, RedirectService ],
-      multi: true
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: () => polyfillICU,
       multi: true
     }
   ]

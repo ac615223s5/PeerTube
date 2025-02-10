@@ -200,7 +200,7 @@
                     @case ('CREATE') {
                       Cancel creation
                     } @case ('UPDATE') {
-                      Cancel edition
+                      Cancel edit
                     } @case ('REMOVE') {
                       Cancel deletion
                     }
@@ -209,7 +209,7 @@
               } @else {
                 <a
                   i18n-title title="See the subtitle file" class="caption-entry-label" target="_blank" rel="noopener noreferrer"
-                  [href]="videoCaption.captionPath"
+                  [href]="videoCaption.fileUrl"
                 >{{ getCaptionLabel(videoCaption) }}</a>
 
                 <div i18n class="caption-entry-state">Already uploaded on {{ videoCaption.updatedAt | ptDate }}	&#10004;</div>

@@ -112,7 +112,7 @@ async function generateVideoWithCodec (name: string, options: CodecFixtureOption
     }
 
     cmd
-      .format(options.container)
+      .format(options.container === 'mkv' ? 'matroska' : options.container)
       .output(tempFixturePath)
       .on('error', rej)
       .on('end', () => res(tempFixturePath))

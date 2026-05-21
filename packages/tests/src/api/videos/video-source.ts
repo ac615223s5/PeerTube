@@ -210,6 +210,7 @@ describe('Test video source management', function () {
     before(async function () {
       this.timeout(60000)
 
+      await servers[0].config.save()
       await servers[0].config.keepSourceFile()
 
       const { uuid } = await servers[0].videos.upload({
@@ -259,6 +260,8 @@ describe('Test video source management', function () {
     after(async function () {
       await servers[0].videos.remove({ id: videoUUID })
       await waitJobs(servers)
+
+      await servers[0].config.rollback()
     })
   })
 

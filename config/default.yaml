@@ -603,6 +603,10 @@ user:
       # Enable or disable video history by default for new users
       enabled: true
 
+  # Disable local login and OAuth token usage for the built-in `root` user.
+  # If enabled, root cannot login and existing root OAuth access/refresh tokens are rejected.
+  disable_root_auth: false
+
   # Default value of maximum video bytes the user can upload
   # Does not take into account transcoded files or account export archives (that can include user uploaded files)
   # Byte format is supported ("1GB" etc)
@@ -1054,7 +1058,7 @@ instance:
   # To discourage researchers from testing your instance and disable security.txt integration, set this to an empty string
   securitytxt: |
     Contact: https://github.com/Chocobozzz/PeerTube/blob/develop/SECURITY.md
-    Expires: 2025-12-31T11:00:00.000Z
+    Expires: 2030-12-31T11:00:00.000Z
 
 services:
   # Cards configuration to format video in Twitter/X

@@ -1,6 +1,10 @@
 # Changelog
 
-## v8.2.0-rc.1
+## v8.2.0
+
+### SECURITY
+
+  **Please read the [v8.1.8 IMPORTANT NOTES](https://github.com/Chocobozzz/PeerTube/releases/tag/v8.1.8)**, which explain that the vulnerability fixed in v8.1.6 has been actively exploited
 
 ### IMPORTANT NOTES
 
@@ -16,7 +20,7 @@
 ### Sysadmin
 
   * [prune-storage script](https://docs.joinpeertube.org/maintain/tools#prune-filesystem-object-storage) can now be run without stopping PeerTube
-  * Add video `pivacy` tag for `peertube_videos_total` OTEL metric
+  * Add video `privacy` tag for `peertube_videos_total` OTEL metric
 
 ### Configuration
 
@@ -45,7 +49,7 @@
 ### Features
 
   * :tada: Add ability to transfer a video channel to another user of the same instance :tada:
-  * :tada: Add live DVR [#7396](https://github.com/Chocobozzz/PeerTube/pull/7396) allowing users to seek within and pause the live :tada:
+  * :tada: Add live DVR allowing users to seek within and pause the live [#7396](https://github.com/Chocobozzz/PeerTube/pull/7396) :tada:
   * :tada: Add ability to remove segments of a video in Studio :tada:
   * Support Romanian and Korean languages in web client
   * Improve video ownership change UX:
@@ -58,7 +62,7 @@
     * Add ability to flip the video horizontally [#7478](https://github.com/Chocobozzz/PeerTube/pull/7478)
 	* Redesign loading spinner
   * Support podcast feed for playlists
-  * Add video download stats for video makers
+  * Add video download stats for video makers [#7437](https://github.com/Chocobozzz/PeerTube/pull/7437)
   * Improve global UX:
     * Introduce a new table filter component that is simpler to use
     * Default runner job route is the page that lists runner jobs
@@ -99,6 +103,7 @@
   * Expose runner and runner job queue OpenTelemetry metrics [#7469](https://github.com/Chocobozzz/PeerTube/pull/7469)
   * Prevent stale follows by periodically re-sending `Follow` ActivityPub requests to remote instances
   * Improve follows reliability algorithm to reject followers that have been consistently down for ~7 days
+  * Add `.m4b` audio file support
 
 ### Bug fixes
 
@@ -120,6 +125,74 @@
   * Fix broke HLS transcoding on concurrent video privacy change
   * Don't unpause the player when clicking on a transcription segment
   * Fix table page navigation on registration action
+ * More robust playlist thumbnails updater
+ * Fix concurrency issue when writing live sha segments
+ * Fix concurrency issue when uploading the same torrent filename
+ * Fix column varchar lengths
+
+
+## v8.1.8
+
+### IMPORTANT NOTES
+
+We have learned that the SQL injection vulnerability fixed in v8.1.6 has been exploited at scale since at least May 18, 2026 and so before the v8.1.6 release.
+According to our investigation, the attacker exploited this SQL injection to generate a token for the `root` user and install the `peertube-plugin-google-analytics-js` plugin. This plugin imports a client script from `hxxps://www.googie-anaiytics.com/jquery.ui.js` that currently only logs a line in the web browser.
+
+Actions taken by this release:
+ * Automatically remove `peertube-plugin-google-analytics-js` in v8.1.8
+ * Invalidate OAuth tokens in v8.1.8 (all users must log in again)
+ * Add a new `user.disable_root_auth` config key to disable `root` token usage
+ * Remove the plugin from the plugin registry
+
+Actions taken by Framasoft:
+ * Report `googie-anaiytics.com` to the registrar
+ * Send a contact-form message to public PeerTube instances
+ * Release additional versions if we observe other attack vectors
+ * A CVE is being requested for the SQL injection
+
+Actions admins must take:
+ * Upgrade to v8.1.8 **as soon as possible**
+ * Review newly created users and videos
+ * Review your instance configuration, especially *Configuration* -> *Customization* -> *JavaScript*/*CSS*
+ * Review installed plugins
+ * Generate new tokens for your runners
+
+If you cannot upgrade to v8.1.8:
+ 1. Remove actor follows that contain the `20.240.202.159` URL:
+   * Find them: `SELECT * FROM "actorFollow" WHERE "url" LIKE '%20.240.202.159%'`
+   * Delete them: `DELETE FROM "actorFollow" WHERE "id" = ...`
+ 2. Remove actors that contain a `'` character in `inboxUrl`:
+   * Find them: `SELECT * FROM "actor" WHERE "inboxUrl" LIKE '%''%'`
+   * Delete them: `DELETE FROM "actor" WHERE "id" = ...`
+ 3. Invalidate OAuth tokens: `UPDATE "oAuthToken" SET "accessTokenExpiresAt" = NOW(), "refreshTokenExpiresAt" = NOW() WHERE "accessTokenExpiresAt" > NOW() OR "refreshTokenExpiresAt" > NOW()`
+ 4. Remove `peertube-plugin-google-analytics-js` from instance plugins
+ 5. Disable federation in `production.yaml` by setting `federation.enabled` to `false`
+ 6. Restart PeerTube
+
+
+## v8.1.7
+
+## Bug fixes
+
+  * Fix broken URL import
+  * Fix user quota check for imports
+  * Fix removing notifications from muted accounts
+
+
+## v8.1.6
+
+### IMPORTANT NOTES
+
+ * Follow v8.1.0 IMPORTANT NOTES if you upgrade from PeerTube <= v8.0.2
+
+### SECURITY
+
+ * Fix SQL injection coming from actor inbox URL when updating actor follow scores. Thanks to **Nagarajan Selvaraj Paulmony** for reporting this vulnerability :pray:
+ * Reject JSON-LD objects with special properties. Thanks to **Mastodon security team** for reporting this vulnerability :pray:
+ * Restricts role assignment to administrators only
+ * Prevent external auth token replay
+ * Prevent SSRF on import and channel sync
+ * Stricter rate limit to ask password reset
 
 
 ## v8.1.5

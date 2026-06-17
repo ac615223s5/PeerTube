@@ -540,6 +540,11 @@ function customConfig (): CustomConfig {
         }
       }
     },
+    blocklist: {
+      publicLog: {
+        enabled: CONFIG.BLOCKLIST.PUBLIC_LOG.ENABLED
+      }
+    },
     followers: {
       instance: {
         enabled: CONFIG.FOLLOWERS.INSTANCE.ENABLED,

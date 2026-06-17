@@ -13,8 +13,6 @@ import {
 import { retryTransactionWrapper } from '@server/helpers/database-utils.js'
 import { YoutubeDLWrapper } from '@server/helpers/youtube-dl/index.js'
 import { CONFIG } from '@server/initializers/config.js'
-import { AutomaticTagger } from '@server/lib/automatic-tags/automatic-tagger.js'
-import { setAndSaveVideoAutomaticTags } from '@server/lib/automatic-tags/automatic-tags.js'
 import { isPostImportVideoAccepted } from '@server/lib/moderation.js'
 import { Hooks } from '@server/lib/plugins/hooks.js'
 import { ServerConfigManager } from '@server/lib/server-config-manager.js'
@@ -239,9 +237,6 @@ async function processFile (options: {
           }
 
           await replaceChaptersIfNotExist({ video, chapters: containerChapters, transaction: t })
-
-          const automaticTags = await new AutomaticTagger().buildVideoAutomaticTags({ video, transaction: t })
-          await setAndSaveVideoAutomaticTags({ video, automaticTags, transaction: t })
 
           // Now we can federate the video (reload from database, we need more attributes)
           const videoForFederation = await VideoModel.loadFull(video.uuid, t)

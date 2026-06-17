@@ -360,9 +360,9 @@ export class UserModerationDropdownComponent implements OnInit, OnChanges {
       authUser.canManageUser(this.user())
 
     const hasAccountBlocklistRight = this.account() && displayOptions.instanceAccount &&
-      authUser.hasRight(UserRight.MANAGE_ACCOUNTS_BLOCKLIST)
+      authUser.hasRight(UserRight.MANAGE_SERVER_ACCOUNTS_BLOCKLIST)
     const hasServerBlocklistRight = this.account() && displayOptions.instanceAccount &&
-      authUser.hasRight(UserRight.MANAGE_SERVERS_BLOCKLIST)
+      authUser.hasRight(UserRight.MANAGE_SERVER_SERVERS_BLOCKLIST)
     const hasBulkRemoveCommentsRight = this.account() && displayOptions.instanceAccount &&
       authUser.hasRight(UserRight.MANAGE_ANY_VIDEO_COMMENT)
 
@@ -416,7 +416,7 @@ export class UserModerationDropdownComponent implements OnInit, OnChanges {
       if (hasManageRight) {
         platformModerationActions = platformModerationActions.concat([
           {
-            label: $localize`Ban`,
+            label: $localize`Ban...`,
             description: $localize`User won't be able to login anymore, but videos and comments will be kept as is.`,
             handler: ({ user }) => this.openBanUserModal(user),
             isDisplayed: ({ user }) => !this.isMyUser(user) && !user.blocked

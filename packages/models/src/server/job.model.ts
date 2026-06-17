@@ -15,13 +15,17 @@ export type JobType =
   | 'activitypub-refresher'
   | 'actor-keys'
   | 'after-video-channel-import'
+  | 'build-automatic-tags'
+  | 'create-user-export'
   | 'email'
   | 'federate-video'
-  | 'transcoding-job-builder'
+  | 'generate-video-storyboard'
+  | 'import-user-archive'
   | 'manage-video-torrent'
-  | 'move-to-object-storage'
   | 'move-to-file-system'
+  | 'move-to-object-storage'
   | 'notify'
+  | 'transcoding-job-builder'
   | 'video-channel-import'
   | 'video-file-import'
   | 'video-import'
@@ -29,12 +33,10 @@ export type JobType =
   | 'video-redundancy'
   | 'video-studio-edition'
   | 'video-transcoding'
-  | 'videos-stats'
-  | 'generate-video-storyboard'
-  | 'create-user-export'
-  | 'import-user-archive'
   | 'video-transcription'
+  | 'videos-stats'
 
+// Client API
 export interface Job {
   id: number | string
   state: JobState | 'unknown'
@@ -51,6 +53,8 @@ export interface Job {
     id: string
   }
 }
+
+// ---------------------------------------------------------------------------
 
 export type ActivitypubHttpBroadcastPayload = {
   uris: string[]
@@ -73,6 +77,7 @@ export type ActivitypubHttpFetcherPayload = {
   type: FetchType
   videoId?: number
   accountId?: number
+  abortSignal?: AbortSignal
 }
 
 export type ActivitypubHttpUnicastPayload = {
@@ -147,6 +152,7 @@ interface BaseTranscodingPayload {
   videoUUID: string
   canMoveVideoState: boolean
   isNewVideo?: boolean
+  abortSignal?: AbortSignal
 }
 
 export interface HLSTranscodingPayload extends BaseTranscodingPayload {
@@ -358,4 +364,12 @@ export interface ImportUserArchivePayload {
 
 export interface VideoTranscriptionPayload {
   videoUUID: string
+}
+
+// ---------------------------------------------------------------------------
+
+export interface BuildAutomaticTagsPayload {
+  accountId: number
+  ofComments: boolean
+  ofVideos: boolean
 }

@@ -296,6 +296,12 @@ export interface CustomConfig {
     }
   }
 
+  blocklist: {
+    publicLog: {
+      enabled: boolean
+    }
+  }
+
   followers: {
     instance: {
       enabled: boolean

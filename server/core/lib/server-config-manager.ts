@@ -373,6 +373,12 @@ class ServerConfigManager {
         }
       },
 
+      blocklist: {
+        publicLog: {
+          enabled: CONFIG.BLOCKLIST.PUBLIC_LOG.ENABLED
+        }
+      },
+
       federation: {
         enabled: CONFIG.FEDERATION.ENABLED
       },

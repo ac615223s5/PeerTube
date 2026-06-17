@@ -14,6 +14,8 @@ import {
   PlayerThemeVideoSetting,
   RunnerJobState,
   RunnerJobStateType,
+  StreamSyncState,
+  StreamSyncStateType,
   UploadImageType,
   UploadImageType_Type,
   UserExportState,
@@ -28,8 +30,6 @@ import {
   VideoChannelActivityTargetType,
   VideoChannelCollaboratorState,
   VideoChannelCollaboratorStateType,
-  VideoChannelSyncState,
-  VideoChannelSyncStateType,
   VideoCommentPolicy,
   VideoCommentPolicyType,
   VideoEmbedPrivacyPolicy,
@@ -49,7 +49,7 @@ import {
   VideoState,
   VideoStateType
 } from '@peertube/peertube-models'
-import { isTestInstance, isTestOrDevInstance, root } from '@peertube/peertube-node-utils'
+import { isDevInstance, isTestInstance, isTestOrDevInstance, root } from '@peertube/peertube-node-utils'
 import { RepeatOptions } from 'bullmq'
 import { Encoding, randomBytes } from 'crypto'
 import { readJsonSync } from 'fs-extra/esm'
@@ -62,7 +62,7 @@ import { CONFIG, registerConfigChangedHandler } from './config.js'
 
 // ---------------------------------------------------------------------------
 
-export const LAST_MIGRATION_VERSION = 1040
+export const LAST_MIGRATION_VERSION = 1055
 
 // ---------------------------------------------------------------------------
 
@@ -155,8 +155,10 @@ export const SORTABLE_COLUMNS = {
 
   ACCOUNTS_BLOCKLIST: [ 'createdAt' ],
   SERVERS_BLOCKLIST: [ 'createdAt' ],
+  BLOCKLIST_SUBSCRIPTIONS: [ 'name', 'createdAt', 'lastSyncAt' ],
 
   WATCHED_WORDS_LISTS: [ 'createdAt', 'updatedAt', 'listName' ],
+  WATCHED_WORDS_SUBSCRIPTIONS: [ 'name', 'createdAt', 'lastSyncAt' ],
 
   USER_NOTIFICATIONS: [ 'createdAt', 'read' ],
 
@@ -211,6 +213,7 @@ export const REMOTE_SCHEME = {
 // ---------------------------------------------------------------------------
 
 export const JOB_ATTEMPTS: { [id in JobType]: number } = {
+  'build-automatic-tags': 1,
   'activitypub-http-broadcast': 1,
   'activitypub-http-broadcast-parallel': 1,
   'activitypub-http-unicast': 1,
@@ -242,6 +245,7 @@ export const JOB_ATTEMPTS: { [id in JobType]: number } = {
 }
 // Excluded keys are jobs that can be configured by admins
 export const JOB_CONCURRENCY: { [id in Exclude<JobType, 'video-transcoding' | 'video-import'>]: number } = {
+  'build-automatic-tags': 1,
   'activitypub-http-broadcast': 1,
   'activitypub-http-broadcast-parallel': 30,
   'activitypub-http-unicast': 30,
@@ -270,6 +274,7 @@ export const JOB_CONCURRENCY: { [id in Exclude<JobType, 'video-transcoding' | 'v
   'video-transcription': 1
 }
 export const JOB_TTL: { [id in JobType]: number } = {
+  'build-automatic-tags': 1000 * 60 * 30, // 30 minutes
   'activitypub-http-broadcast': 60000 * 10, // 10 minutes
   'activitypub-http-broadcast-parallel': 60000 * 10, // 10 minutes
   'activitypub-http-unicast': 60000 * 10, // 10 minutes
@@ -374,7 +379,9 @@ export const SCHEDULER_INTERVALS_MS = {
   REMOVE_EXPIRED_USER_EXPORTS: 1000 * 3600, // 1 hour
   UPDATE_INBOX_STATS: 1000 * 60, // 1 minute
   REMOVE_DANGLING_RESUMABLE_UPLOADS: 60000 * 60, // 1 hour
-  CHANNEL_SYNC_CHECK_INTERVAL: CONFIG.IMPORT.VIDEO_CHANNEL_SYNCHRONIZATION.CHECK_INTERVAL
+  CHANNEL_SYNC_CHECK_INTERVAL: CONFIG.IMPORT.VIDEO_CHANNEL_SYNCHRONIZATION.CHECK_INTERVAL,
+  BLOCKLIST_SUBSCRIPTIONS_SYNC: 60000 * 60, // 1 hour
+  WATCHED_WORDS_SUBSCRIPTIONS_SYNC: 60000 * 60 // 1 hour
 }
 
 // ---------------------------------------------------------------------------
@@ -402,7 +409,8 @@ export const CONSTRAINTS_FIELDS = {
     MODERATOR_MESSAGE: { min: 2, max: 3000 } // Length
   },
   VIDEO_BLACKLIST: {
-    REASON: { min: 2, max: 300 } // Length
+    REASON: { min: 2, max: 300 }, // Length
+    INTERNAL_NOTE: { min: 2, max: 300 } // Length
   },
   VIDEO_CHANNELS: {
     NAME: { min: 1, max: 120 }, // Length
@@ -461,7 +469,8 @@ export const CONSTRAINTS_FIELDS = {
     DISLIKES: { min: 0 },
     FILE_SIZE: { min: -1 },
     PARTIAL_UPLOAD_SIZE: { max: 50 * 1024 * 1024 * 1024 }, // 50GB
-    URL: { min: 3, max: 2000 } // Length
+    URL: { min: 3, max: 2000 }, // Length
+    PASSWORD: { min: 2, max: 100 } // Length
   },
   VIDEO_SOURCE: {
     FILENAME: { min: 1, max: 1000 } // Length
@@ -541,9 +550,6 @@ export const CONSTRAINTS_FIELDS = {
     REASON: { min: 1, max: 5000 }, // Length
     ERROR_MESSAGE: { min: 1, max: 5000 }, // Length
     PROGRESS: { min: 0, max: 100 } // Value
-  },
-  VIDEO_PASSWORD: {
-    LENGTH: { min: 2, max: 100 }
   },
   VIDEO_CHAPTERS: {
     TITLE: { min: 1, max: 100 } // Length
@@ -662,11 +668,11 @@ export const VIDEO_IMPORT_STATES: { [id in VideoImportStateType]: string } = {
   [VideoImportState.PROCESSING]: 'Processing'
 }
 
-export const VIDEO_CHANNEL_SYNC_STATE: { [id in VideoChannelSyncStateType]: string } = {
-  [VideoChannelSyncState.FAILED]: 'Failed',
-  [VideoChannelSyncState.SYNCED]: 'Synchronized',
-  [VideoChannelSyncState.PROCESSING]: 'Processing',
-  [VideoChannelSyncState.WAITING_FIRST_RUN]: 'Waiting first run'
+export const STREAM_SYNC_STATE: { [id in StreamSyncStateType]: string } = {
+  [StreamSyncState.FAILED]: 'Failed',
+  [StreamSyncState.SYNCED]: 'Synchronized',
+  [StreamSyncState.PROCESSING]: 'Processing',
+  [StreamSyncState.WAITING_FIRST_RUN]: 'Waiting first run'
 }
 
 export const ABUSE_STATES: { [id in AbuseStateType]: string } = {
@@ -1290,6 +1296,7 @@ if (process.env.PRODUCTION_CONSTANTS !== 'true') {
     SCHEDULER_INTERVALS_MS.REMOVE_OLD_HISTORY = 5000
     SCHEDULER_INTERVALS_MS.UPDATE_VIDEOS = 5000
     SCHEDULER_INTERVALS_MS.AUTO_FOLLOW_INDEX_INSTANCES = 5000
+
     SCHEDULER_INTERVALS_MS.UPDATE_INBOX_STATS = 5000
     SCHEDULER_INTERVALS_MS.CHECK_PEERTUBE_VERSION = 2000
     SCHEDULER_INTERVALS_MS.UPDATE_TOKEN_SESSION = 2000
@@ -1318,7 +1325,10 @@ if (process.env.PRODUCTION_CONSTANTS !== 'true') {
     VIEWER_SYNC_REDIS = 1000
   }
 
-  if (isTestInstance()) {
+  if (isDevInstance()) {
+    SCHEDULER_INTERVALS_MS.BLOCKLIST_SUBSCRIPTIONS_SYNC = 60000
+    SCHEDULER_INTERVALS_MS.WATCHED_WORDS_SUBSCRIPTIONS_SYNC = 60000
+  } else if (isTestInstance()) {
     SCHEDULER_INTERVALS_MS.ACTOR_FOLLOW_SCORES = 1000
 
     ACTIVITY_PUB.COLLECTION_ITEMS_PER_PAGE = 2
@@ -1337,6 +1347,9 @@ if (process.env.PRODUCTION_CONSTANTS !== 'true') {
     VIDEO_LIVE.SEGMENT_TIME_SECONDS.DEFAULT_LATENCY = 2
     VIDEO_LIVE.SEGMENT_TIME_SECONDS.SMALL_LATENCY = 1
     VIDEO_LIVE.EDGE_LIVE_DELAY_SEGMENTS_NOTIFICATION = 1
+
+    SCHEDULER_INTERVALS_MS.BLOCKLIST_SUBSCRIPTIONS_SYNC = 5000
+    SCHEDULER_INTERVALS_MS.WATCHED_WORDS_SUBSCRIPTIONS_SYNC = 5000
 
     RUNNER_JOBS.LAST_CONTACT_UPDATE_INTERVAL = 2000
 

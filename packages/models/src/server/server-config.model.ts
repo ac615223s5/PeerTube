@@ -335,6 +335,12 @@ export interface ServerConfig {
     }
   }
 
+  blocklist: {
+    publicLog: {
+      enabled: boolean
+    }
+  }
+
   avatar: {
     file: FileConstraints
   }

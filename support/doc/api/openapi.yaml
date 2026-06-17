@@ -4722,9 +4722,35 @@ paths:
         - Video Blocks
       parameters:
         - $ref: '#/components/parameters/idOrUUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoBlacklistCreate'
       responses:
         '204':
           description: successful operation
+    put:
+      summary: Update a video block
+      operationId: updateVideoBlock
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      tags:
+        - Video Blocks
+      parameters:
+        - $ref: '#/components/parameters/idOrUUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoBlacklistUpdate'
+      responses:
+        '204':
+          description: successful operation
+        '404':
+          description: block not found
     delete:
       summary: Unblock a video by its id
       operationId: delVideoBlock
@@ -6851,6 +6877,12 @@ paths:
         - $ref: '#/components/parameters/start'
         - $ref: '#/components/parameters/count'
         - $ref: '#/components/parameters/sort'
+        -
+          name: subscriptionName
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: successful operation
@@ -6924,6 +6956,12 @@ paths:
         - $ref: '#/components/parameters/start'
         - $ref: '#/components/parameters/count'
         - $ref: '#/components/parameters/sort'
+        -
+          name: subscriptionName
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: successful operation
@@ -6985,6 +7023,104 @@ paths:
           description: successful operation
         '404':
           description: server block does not exist
+
+  /api/v1/server/blocklist/subscriptions:
+    get:
+      tags:
+        - Server Blocklist
+      summary: List server blocklist subscriptions
+      security:
+        - OAuth2:
+          - admin
+      parameters:
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/count'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BlocklistSubscription'
+    post:
+      tags:
+        - Server Blocklist
+      summary: Add a server blocklist subscription
+      security:
+        - OAuth2:
+          - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: url
+              required:
+                - url
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlocklistSubscription'
+        '409':
+          description: subscription already exists
+
+  '/api/v1/server/blocklist/subscriptions/{id}':
+    delete:
+      tags:
+        - Server Blocklist
+      summary: Delete a server blocklist subscription
+      security:
+        - OAuth2:
+          - admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: successful operation
+        '404':
+          description: subscription does not exist
+
+  /api/v1/server/blocklist/public-log:
+    get:
+      tags:
+        - Server Blocklist
+      summary: List publicly shared server blocklist log entries
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutoMuteList'
+        '403':
+          description: public log is disabled
 
   /api/v1/server/redundancy/{host}:
     put:
@@ -8280,6 +8416,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomaticTagAvailable'
 
+  /api/v1/automatic-tags/policies/server/videos:
+    get:
+      tags:
+        - Automatic Tags
+      summary: Get server auto tag policies for videos
+      description: "**PeerTube >= 8.3**"
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoAutoTagPolicies'
+    put:
+      tags:
+        - Automatic Tags
+      summary: Update server auto tag policies for videos
+      description: "**PeerTube >= 8.3**"
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                autoBlock:
+                  description: 'Auto tags that will automatically block videos matching these tags'
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '204':
+          description: successful operation
+
   /api/v1/watched-words/accounts/{accountName}/lists:
     get:
       tags:
@@ -8516,6 +8693,180 @@ paths:
       responses:
         '204':
           description: successful operation
+
+  /api/v1/watched-words/accounts/{accountName}/subscriptions:
+    get:
+      tags:
+        - Watched Words
+      summary: List account watched words subscriptions
+      security:
+        - OAuth2: []
+      parameters:
+        - name: accountName
+          in: path
+          required: true
+          description: account name to list watched words subscriptions
+          schema:
+            type: string
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/count'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WatchedWordsSubscription'
+    post:
+      tags:
+        - Watched Words
+      summary: Add account watched words subscription
+      security:
+        - OAuth2: []
+      parameters:
+        - name: accountName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: url
+              required:
+                - url
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchedWordsSubscription'
+        '400':
+          description: cannot fetch or parse watched words URL
+        '409':
+          description: subscription already exists or watched words list with fetched name already exists
+
+  /api/v1/watched-words/accounts/{accountName}/subscriptions/{id}:
+    delete:
+      tags:
+        - Watched Words
+      summary: Delete account watched words subscription
+      security:
+        - OAuth2: []
+      parameters:
+        - name: accountName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: successful operation
+        '404':
+          description: watched words subscription does not exist
+
+  /api/v1/watched-words/server/subscriptions:
+    get:
+      tags:
+        - Watched Words
+      summary: List server watched words subscriptions
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      parameters:
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/count'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WatchedWordsSubscription'
+    post:
+      tags:
+        - Watched Words
+      summary: Add server watched words subscription
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: url
+              required:
+                - url
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchedWordsSubscription'
+        '400':
+          description: cannot fetch or parse watched words URL
+        '409':
+          description: subscription already exists or watched words list with fetched name already exists
+
+  /api/v1/watched-words/server/subscriptions/{id}:
+    delete:
+      tags:
+        - Watched Words
+      summary: Delete server watched words subscription
+      security:
+        - OAuth2:
+          - admin
+          - moderator
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: successful operation
+        '404':
+          description: watched words subscription does not exist
+
   /api/v1/client-config/update-language:
     post:
       tags:
@@ -9691,6 +10042,8 @@ components:
             properties:
               blockedByServer:
                 type: boolean
+              blockedByServerSubscription:
+                type: string
               blockedByUser:
                 type: boolean
         hosts:
@@ -9701,6 +10054,8 @@ components:
             properties:
               blockedByServer:
                 type: boolean
+              blockedByServerSubscription:
+                type: string
               blockedByUser:
                 type: boolean
 
@@ -10398,6 +10753,9 @@ components:
         blockedAccount:
           $ref: '#/components/schemas/Account'
           type: boolean
+        blocklistSubscription:
+          $ref: '#/components/schemas/BlocklistSubscriptionSummary'
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -10411,14 +10769,90 @@ components:
             host:
               type: string
               format: hostname
+        blocklistSubscription:
+          $ref: '#/components/schemas/BlocklistSubscriptionSummary'
+          nullable: true
         createdAt:
           type: string
           format: date-time
+    BlocklistSubscription:
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+        url:
+          type: string
+          format: url
+        mutedAccountsCount:
+          type: integer
+          minimum: 0
+        mutedServersCount:
+          type: integer
+          minimum: 0
+        lastSyncAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BlocklistSubscriptionSummary:
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+        url:
+          type: string
+          format: url
+    BlocklistLog:
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        action:
+          type: string
+          enum:
+            - add
+            - delete
+        target:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AutoMuteList:
+      properties:
+        name:
+          type: string
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - block
+                  - unblock
+              target:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
     CommentAutoTagPolicies:
       properties:
         review:
           type: array
           description: 'Auto tags that automatically set the comment in review state'
+          items:
+            type: string
+    VideoAutoTagPolicies:
+      properties:
+        autoBlock:
+          type: array
+          description: 'Auto tags that will automatically block videos matching these tags'
           items:
             type: string
     AutomaticTagAvailable:
@@ -10589,37 +11023,53 @@ components:
         account:
           $ref: '#/components/schemas/AccountSummary'
     VideoBlacklist:
+      type: object
       properties:
         id:
           $ref: '#/components/schemas/id'
-        videoId:
-          $ref: '#/components/schemas/Video/properties/id'
+        reason:
+          type: string
+          description: Reason for the block (public)
+        internalNote:
+          type: string
+          description: Internal note for moderators/admins
+        unfederated:
+          type: boolean
+        type:
+          type: integer
+          description: >
+            - `1`: manual block
+            - `2`: automatic block by instance policy
+            - `3`: automatic block by auto-tag policy
+        video:
+          $ref: '#/components/schemas/Video'
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
-        name:
+    VideoBlacklistCreate:
+      type: object
+      properties:
+        reason:
           type: string
-          minLength: 3
-          maxLength: 120
-        uuid:
-          $ref: '#/components/schemas/UUIDv4'
-        description:
-          type: string
-          minLength: 3
-          maxLength: 10000
-        duration:
-          type: integer
-        views:
-          type: integer
-        likes:
-          type: integer
-        dislikes:
-          type: integer
-        nsfw:
+          description: Reason for the block (public)
+        unfederate:
           type: boolean
+          description: Whether to unfederate the video
+        internalNote:
+          type: string
+          description: Internal note for moderators/admins
+    VideoBlacklistUpdate:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Reason for the block (displayed publicly)
+        internalNote:
+          type: string
+          description: Internal note for moderators/admins
     ChangeOwnership:
       type: object
       description: Representation of a ownership change
@@ -11235,6 +11685,14 @@ components:
                   properties:
                     enabled:
                       type: boolean
+        blocklist:
+          type: object
+          properties:
+            publicLog:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
         avatar:
           type: object
           properties:
@@ -11757,6 +12215,14 @@ components:
                   properties:
                     enabled:
                       type: boolean
+        blocklist:
+          type: object
+          properties:
+            publicLog:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
         followers:
           type: object
           properties:
@@ -13057,6 +13523,8 @@ components:
         - 29
         - 30
         - 31
+        - 32
+        - 33
       description: >
         Notification type. One of the following values:
 
@@ -13121,6 +13589,8 @@ components:
           - `30` CHANNEL_OWNERSHIP_CHANGED_ACCEPTED
 
           - `31` CHANNEL_OWNERSHIP_CHANGED_REJECTED
+
+          - `32` AUTOMATIC_BLOCKLIST_UPDATE
 
     NewFeatureInfoType:
       type: integer
@@ -13777,6 +14247,48 @@ components:
           type: array
           items:
             type: string
+        subscriptionUrl:
+          type: string
+          format: url
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2021-05-04T08:01:01.502Z
+        createdAt:
+          type: string
+          format: date-time
+          example: 2021-05-04T08:01:01.502Z
+
+    WatchedWordsSubscription:
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+        url:
+          type: string
+          format: url
+        importedWordsCount:
+          type: integer
+          minimum: 0
+        lastSyncAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2021-05-04T08:01:01.502Z
+        state:
+          type: object
+          properties:
+            id:
+              type: integer
+              enum:
+                - 1
+                - 2
+                - 3
+                - 4
+            label:
+              type: string
         updatedAt:
           type: string
           format: date-time

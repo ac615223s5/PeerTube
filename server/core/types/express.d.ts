@@ -35,7 +35,9 @@ import {
   MVideoThumbnails,
   MVideoWithBlacklist,
   MVideoWithRights,
-  MWatchedWordsList
+  MWatchedWordsList,
+  MWatchedWordsSubscription,
+  MBlocklistSubscription
 } from '@server/types/models/index.js'
 import { MOAuthToken, MOAuthTokenUser } from '@server/types/models/oauth/oauth-token.js'
 import { MPlugin, MServer, MServerBlocklist } from '@server/types/models/server.js'
@@ -259,10 +261,13 @@ declare module 'express' {
       userExport?: MUserExport
 
       watchedWordsList?: MWatchedWordsList
+      watchedWordsSubscription?: MWatchedWordsSubscription
 
       tokenSession?: MOAuthToken
 
       channelCollaborator?: MChannelCollaboratorAccount
+
+      blocklistSubscription?: MBlocklistSubscription
     }
   }
 }
